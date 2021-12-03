@@ -13,22 +13,24 @@ fn lines_from_file(filename: impl AsRef<Path>) -> Vec<String> {
 }
 
 fn main() {
-    let mut char_counter = vec![0; 12];
     let lines = lines_from_file("./../input.txt");
     let counter = lines.len() / 2;
-    for line in lines {
-        line.chars().enumerate().for_each(|(i, ch)| {
-            if ch == '1' {
-                char_counter[i] += 1;
-            }
+    let mut char_counter = vec![0; lines[0].len()];
+    char_counter
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, counter)| {
+            *counter = lines
+                .iter()
+                .filter(|&ch| (*ch).chars().nth(i) == Some('1'))
+                .count();
         });
-    }
     let gamma_string: String = char_counter
         .iter()
         .map(|&x| (x / counter).to_string())
         .collect();
     let gamma = usize::from_str_radix(&gamma_string, 2).unwrap();
-    let mask = 0b1111_1111_1111usize;
+    let mask = 0b1111_1111_1111;
     let epsilon = gamma ^ mask;
     println!("gamma = {}", gamma);
     println!("epsilon = {}", epsilon);
