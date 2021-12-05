@@ -67,17 +67,19 @@ fn check_column(arr: &Array2D<i32>) -> bool {
 
 fn main() {
     let (numbers, mut arrays) = read_data("./../input.txt");
-    let mut arrays_to_fill: Vec<Array2D<i32>> = Vec::new();
-    let mut arr = iter::repeat(Array2D::from_columns(&vec![vec![-1; 5]; 5]));
-    for _i in 0..arrays.len() {
-        arrays_to_fill.push(arr.next().unwrap());
-    }
+    let mut arrays_to_fill = iter::repeat(Array2D::from_columns(&vec![vec![-1; 5]; 5]))
+        .take(arrays.len())
+        .collect::<Vec<Array2D<i32>>>();
     for number in numbers {
+        let mut to_delete = Vec::new();
         for (i, array) in arrays.iter().enumerate() {
-            for j in 0..5 {
-                for k in 0..5 {
+            for j in 0..array.num_rows() {
+                for k in 0..array.num_columns() {
                     if array.get(j, k) == Some(&number) {
                         *arrays_to_fill.get_mut(i).unwrap().get_mut(j, k).unwrap() = number;
+                        if check_win(arrays_to_fill.get(i).unwrap()) {
+                            to_delete.push(i);
+                        }
                     }
                 }
             }
@@ -91,12 +93,6 @@ fn main() {
                 break;
             }
         } else {
-            let mut to_delete = Vec::new();
-            for (i, array) in arrays_to_fill.iter().enumerate() {
-                if check_win(array) {
-                    to_delete.push(i);
-                }
-            }
             for (_, i) in to_delete.iter().rev().enumerate() {
                 arrays.remove(*i);
                 arrays_to_fill.remove(*i);
