@@ -2,10 +2,11 @@ use array2d::Array2D;
 use std::{
     fs::File,
     io::{prelude::*, BufReader},
+    iter,
     path::Path,
 };
 
-fn read_data(filename: impl AsRef<Path>) -> (Vec<u32>, Vec<Array2D<u32>>) {
+fn read_data(filename: impl AsRef<Path>) -> (Vec<i32>, Vec<Array2D<i32>>) {
     let file = File::open(filename).expect("file err");
     let mut buf = BufReader::new(file);
     let mut line = String::new();
@@ -15,19 +16,19 @@ fn read_data(filename: impl AsRef<Path>) -> (Vec<u32>, Vec<Array2D<u32>>) {
         .next()
         .unwrap()
         .split(',')
-        .map(|x| x.parse::<u32>().unwrap())
-        .collect::<Vec<u32>>();
+        .map(|x| x.parse::<i32>().unwrap())
+        .collect::<Vec<i32>>();
     line.clear();
-    let mut arrays: Vec<Array2D<u32>> = Vec::new();
+    let mut arrays: Vec<Array2D<i32>> = Vec::new();
     while buf.read_line(&mut line).unwrap() > 0 {
         line.clear();
-        let mut rows: Vec<Vec<u32>> = Vec::new();
+        let mut rows: Vec<Vec<i32>> = Vec::new();
         for _i in 0..5 {
             buf.read_line(&mut line).unwrap();
             rows.push(
                 line.split_whitespace()
-                    .map(|x| x.parse::<u32>().unwrap())
-                    .collect::<Vec<u32>>(),
+                    .map(|x| x.parse::<i32>().unwrap())
+                    .collect::<Vec<i32>>(),
             );
             line.clear();
         }
@@ -36,41 +37,30 @@ fn read_data(filename: impl AsRef<Path>) -> (Vec<u32>, Vec<Array2D<u32>>) {
 
     (numbers, arrays)
 }
-fn sum_array(arr: &Array2D<Option<u32>>) -> u32 {
-    let mut sum: u32 = 0;
-    for i in 0..5 {
-        sum += arr
-            .row_iter(i)
-            .filter(|&x| *x != None)
-            .map(|&x| x.unwrap())
-            .sum::<u32>();
+fn sum_array(arr: &Array2D<i32>) -> i32 {
+    let mut sum: i32 = 0;
+    for row_iter in arr.rows_iter() {
+        sum += row_iter.filter(|&x| *x != -1).sum::<i32>();
     }
     sum
 }
-fn sum_all_array(arr: &Array2D<u32>) -> u32 {
-    let mut sum: u32 = 0;
-    for i in 0..5 {
-        sum += arr.row_iter(i).sum::<u32>();
-    }
-    sum
-}
-fn check_win(arr: &Array2D<Option<u32>>) -> Option<u32> {
+fn check_win(arr: &Array2D<i32>) -> i32 {
     if check_column(arr) || check_rows(arr) {
-        return Some(sum_array(arr));
+        return sum_array(arr);
     }
-    None
+    -1
 }
-fn check_rows(arr: &Array2D<Option<u32>>) -> bool {
-    for i in 0..5 {
-        if arr.row_iter(i).all(|&x| x != None) {
+fn check_rows(arr: &Array2D<i32>) -> bool {
+    for mut row_iter in arr.rows_iter() {
+        if row_iter.all(|&x| x != -1) {
             return true;
         }
     }
     false
 }
-fn check_column(arr: &Array2D<Option<u32>>) -> bool {
-    for i in 0..5 {
-        if arr.column_iter(i).all(|&x| x != None) {
+fn check_column(arr: &Array2D<i32>) -> bool {
+    for mut column_iter in arr.columns_iter() {
+        if column_iter.all(|&x| x != -1) {
             return true;
         }
     }
@@ -79,25 +69,22 @@ fn check_column(arr: &Array2D<Option<u32>>) -> bool {
 
 fn main() {
     let (numbers, arrays) = read_data("./../input.txt");
-    let mut arrays_to_fill: Vec<Array2D<Option<u32>>> = Vec::new();
+    let mut arrays_to_fill = Vec::new();
+    let mut arr = iter::repeat(Array2D::from_columns(&vec![vec![-1; 5]; 5]));
     for _i in 0..arrays.len() {
-        arrays_to_fill.push(Array2D::from_columns(&vec![vec![None; 5]; 5]));
+        arrays_to_fill.push(arr.next().unwrap());
     }
     'outer: for number in numbers {
         for (i, array) in arrays.iter().enumerate() {
-            for j in 0..5 {
-                for k in 0..5 {
-                    if array.get(j, k) == Some(&number) {
-                        *arrays_to_fill.get_mut(i).unwrap().get_mut(j, k).unwrap() = Some(number);
+            for j in 0..array.row_len() {
+                for k in 0..array.column_len() {
+                    if array.get(j, k).unwrap() == &number {
+                        *arrays_to_fill.get_mut(i).unwrap().get_mut(j, k).unwrap() = number;
                         let sum_marked = check_win(arrays_to_fill.get(i).unwrap());
-                        if sum_marked != None {
-                            let sum_all = sum_all_array(array);
-                            println!(
-                                "{} * {} = {}",
-                                number,
-                                sum_all - sum_marked.unwrap(),
-                                number as u32 * (sum_all - sum_marked.unwrap())
-                            );
+                        if sum_marked != -1 {
+                            let sum_all = sum_array(array);
+                            let sum = sum_all - sum_marked;
+                            println!("{} * {} = {}", number, sum, number * sum);
                             break 'outer;
                         }
                     }
