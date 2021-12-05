@@ -69,16 +69,14 @@ fn check_column(arr: &Array2D<i32>) -> bool {
 
 fn main() {
     let (numbers, arrays) = read_data("./../input.txt");
-    let mut arrays_to_fill = Vec::new();
-    let mut arr = iter::repeat(Array2D::from_columns(&vec![vec![-1; 5]; 5]));
-    for _i in 0..arrays.len() {
-        arrays_to_fill.push(arr.next().unwrap());
-    }
+    let mut arrays_to_fill = iter::repeat(Array2D::from_columns(&vec![vec![-1; 5]; 5]))
+        .take(arrays.len())
+        .collect::<Vec<Array2D<i32>>>();
     'outer: for number in numbers {
         for (i, array) in arrays.iter().enumerate() {
-            for j in 0..array.row_len() {
-                for k in 0..array.column_len() {
-                    if array.get(j, k).unwrap() == &number {
+            for j in 0..array.num_rows() {
+                for k in 0..array.num_columns() {
+                    if array.get(j, k) == Some(&number) {
                         *arrays_to_fill.get_mut(i).unwrap().get_mut(j, k).unwrap() = number;
                         let sum_marked = check_win(arrays_to_fill.get(i).unwrap());
                         if sum_marked != -1 {
