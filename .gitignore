@@ -1,13 +1,5 @@
 .vscode
 
-debug/
-target/
-
 Cargo.lock
 
-**/*.rs.bk
-
-*.pdb
-
-[Bb]in/
-[Oo]bj/
+/target
