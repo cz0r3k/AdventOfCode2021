@@ -1,4 +1,4 @@
-//https://adventofcode.com/2021/day/8
+//https://adventofcode.com/2021/day/9
 #![feature(drain_filter)]
 use array2d::Array2D;
 use std::{
@@ -10,16 +10,16 @@ use std::{
 fn read_data(filename: impl AsRef<Path>) -> Array2D<u32> {
     let file = File::open(filename).expect("file err");
     let buf = BufReader::new(file);
-    let v = buf
-        .lines()
-        .filter_map(|line| line.ok())
-        .map(|line| {
-            line.chars()
-                .filter_map(|point| point.to_digit(10))
-                .collect::<Vec<u32>>()
-        })
-        .collect::<Vec<Vec<u32>>>();
-    Array2D::from_rows(&v)
+    Array2D::from_rows(
+        &buf.lines()
+            .filter_map(|line| line.ok())
+            .map(|line| {
+                line.chars()
+                    .filter_map(|point| point.to_digit(10))
+                    .collect::<Vec<u32>>()
+            })
+            .collect::<Vec<Vec<u32>>>(),
+    )
 }
 
 fn check_low_point(numbers: &Array2D<u32>, i: usize, j: usize) -> bool {
