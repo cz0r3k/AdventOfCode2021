@@ -82,23 +82,25 @@ fn part1(numbers: &Array2D<u32>) -> u32 {
     }
     sum
 }
-fn part2(numbers: Array2D<u32>) -> usize {
+
+fn part2(numbers: &Array2D<u32>) -> usize {
     let mut bool_array = Array2D::filled_with(false, numbers.num_rows(), numbers.num_columns());
     let mut sizes = Vec::new();
     for i in 0..numbers.column_len() {
         for j in 0..numbers.row_len() {
-            if check_point_is_good(i, j, &numbers, &bool_array) {
-                sizes.push(backtracking(i, j, &numbers, &mut bool_array));
+            if check_point_is_good(i, j, numbers, &bool_array) {
+                sizes.push(backtracking(i, j, numbers, &mut bool_array));
             }
         }
     }
     sizes.sort_unstable();
     sizes[sizes.len() - 1] * sizes[sizes.len() - 2] * sizes[sizes.len() - 3]
 }
+
 fn main() {
     let numbers = read_data("./input/input9.txt");
     println!("Part 1: {}", part1(&numbers));
-    println!("Part 2: {}", part2(numbers));
+    println!("Part 2: {}", part2(&numbers));
 }
 
 #[test]
@@ -109,5 +111,5 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     let numbers = read_data("./input/input9_test.txt");
-    assert_eq!(part2(numbers), 1134);
+    assert_eq!(part2(&numbers), 1134);
 }
